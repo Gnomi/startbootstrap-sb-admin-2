@@ -75,7 +75,7 @@
         }
         
         function getSheetTotal() {
-            var queryString = encodeURIComponent('SELECT B, C,D, E, F, G, H, I  offset 6' );
+            var queryString = encodeURIComponent('SELECT A, B, C,D, E, F, G, H, I  offset 6' );
 
              var query = new google.visualization.Query(
                 'https://docs.google.com/spreadsheets/d/1tAhtFU1nacw-dRbG03R3oFfoXlj6XJOpSFtAo9Y2pns' + '/gviz/tq?sheet=Daily Result&headers=1&tq=' + queryString);
@@ -96,8 +96,8 @@
             newData.addColumn('string', 'Name');            
             newData.addColumn('number', 'Total'); // change this label to whatever is appropriate for you           
              
-                    
-            for (var i = 0; i < data.getNumberOfColumns(); i++) {
+                    //set i = 0 to limit the date column
+            for (var i = 1; i < data.getNumberOfColumns(); i++) {
                 var p = data.getColumnLabel(i);                 
                 var sum = getSum(data, i);
                 newData.addRow([p, sum]);
@@ -106,13 +106,65 @@
             var formatter = new google.visualization.BarFormat({width: 120});
             formatter.format(newData, 1); // Apply formatter to second column
             var table = new google.visualization.Table(document.getElementById('table_div'));
-            table.draw(newData, {allowHtml: true,  showRowNumber: true, width: '100%', height: '100%' });
+            newData.sort([{ column: 1, desc: true }]);
+            table.draw(newData, {allowHtml: true,  showRowNumber: false, width: '100%', height: '100%' });
+
+
+
+            //https://stackoverflow.com/questions/41113102/limit-range-to-only-show-x-months-in-google-charts
+            var dataViewLastMonth = new google.visualization.DataView(data);
+            var today = new Date();
+            
+            var last3Months = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
+            var lastMonthBegin = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            var lastMonthEnd = new Date(today.getFullYear(), today.getMonth() - 1, 31);
+            dataViewLastMonth.setRows(dataViewLastMonth.getFilteredRows([{
+                 column: 0,
+                minValue: lastMonthBegin,
+                maxValue: lastMonthEnd
+            }]));
+
+            
+
+            var table2 = new google.visualization.Table(document.getElementById('table2_div'));
+
+             table2.draw(dataViewLastMonth, {allowHtml: true,  showRowNumber: true, width: '100%', height: '100%' });
 
  
-           // var chart = new google.visualization.BarChart(document.getElementById('bar_div'));
-           // chart.draw(newData, option);
 
 
+            var datePattern = 'yyyy-MM';
+            var hAxisTicks = [];
+            for (var i = 0; i < dataViewLastMonth.getNumberOfRows(); i++) {
+            hAxisTicks.push(dataViewLastMonth.getValue(i, 0));
+            }
+
+            var chart2 = new google.visualization.LineChart(document.getElementById('chart2_div'));
+            chart2.draw(dataViewLastMonth, {
+            hAxis: {
+                format: datePattern,
+                ticks: hAxisTicks
+            }
+            });
+
+
+           var DataLastMonth = new google.visualization.DataTable();
+                
+            DataLastMonth.addColumn('string', 'Name');            
+            DataLastMonth.addColumn('number', 'Total'); // change this label to whatever is appropriate for you           
+
+             for (var j = 1; j < dataViewLastMonth.getNumberOfColumns(); j++) {
+                var q = dataViewLastMonth.getColumnLabel(j);                 
+                var sumLastMonth = getSum(dataViewLastMonth, j);
+                DataLastMonth.addRow([q, sumLastMonth]);
+            }
+
+            DataLastMonth.sort([{ column: 1, desc: true }]);
+            var table3 = new google.visualization.Table(document.getElementById('table3_div'));
+            
+            table3.draw(DataLastMonth, {allowHtml: true,  showRowNumber: false, width: '100%', height: '100%' });
+
+            alert("TOP: " + DataLastMonth.getValue(0, 1));
         }
 
 
@@ -124,11 +176,12 @@
     <table class="columns">
         <tr>
             <td><div id="pie_div" style="border: 1px solid #ccc; width: 500px; height: 400px"></div></td>
-           
+
         </tr>
     </table>
     <div id="table_div"></div>
-     
-
+    <div id="chart2_div"></div>
+    <div id="table2_div"></div>
+    <div id="table3_div"></div>
 </body>
 </html>

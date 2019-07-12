@@ -1,0 +1,60 @@
+﻿<html>
+<head>
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+        // Load the Visualization API and the corechart package.
+        google.charts.load('current', { 'packages': ['corechart', 'table'] });
+
+        // Set a callback to run when the Google Visualization API is loaded.
+        //  google.charts.setOnLoadCallback(drawChart);
+        google.charts.setOnLoadCallback(drawTableView);
+
+        // Callback that creates and populates a data table,
+        // instantiates the pie chart, passes in the data and
+        // draws it.
+
+
+        //sum(B), sum(C),sum(G), sum(H), sum(D), sum(E), sum(F),  sum(I)'
+        // --where  datediff(now(), todate(A))<100
+        function drawTableView() {
+            var queryString = encodeURIComponent('SELECT A, B, C,D, E, F, G, H, I   limit 50 offset 6' );
+
+            //'https://docs.google.com/spreadsheets/d/1tAhtFU1nacw-dRbG03R3oFfoXlj6XJOpSFtAo9Y2pns' +
+            // sample 'https://docs.google.com/spreadsheets/d/1VPNYvYY_QW-BTFOiisK2QWDsBAyznzVxwDmIpCq_-Sg
+
+             var query = new google.visualization.Query(
+                'https://docs.google.com/spreadsheets/d/1tAhtFU1nacw-dRbG03R3oFfoXlj6XJOpSFtAo9Y2pns' + '/gviz/tq?sheet=Daily Result&headers=1&tq=' + queryString);
+
+            query.send(handleTableViewDataQueryResponse);
+        }
+
+        function handleTableViewDataQueryResponse(response) {
+            if (response.isError()) {
+                alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+                return;
+            }
+
+            var data = response.getDataTable();
+
+            var formatter = new google.visualization.ArrowFormat();
+            for (i = 1; i <= 8; i++) {
+                formatter.format(data, i); // Apply formatter to second column
+            }
+            var table = new google.visualization.Table(document.getElementById('table_div'));
+            table.draw(data, { showRowNumber: true, allowHtml: true, width: '100%', height: '100%' });
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <!--Div that will hold the pie chart-->
+
+    
+
+    <div id="table_div"></div>
+</body>
+</html>
